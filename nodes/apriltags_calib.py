@@ -18,8 +18,6 @@ def transform2Matrix(tr):
 	matrix[0,3] = tr.translation.x
 	matrix[1,3] = tr.translation.y
 	matrix[2,3] = tr.translation.z
-	# print "Extrinsic Calibration Matrix: "
-	# print matrix
 	extcalib = matrix
 
 def getExt():
@@ -54,13 +52,13 @@ def april_calib():
 	rospy.Subscriber('/apriltags/marker_array', MarkerArray, transform_callback)
 	rospy.spin()
 
-def node():
+def main():
 	rospy.init_node('apriltag_calib')
 	getExt()
 	april_calib()
 
 if __name__=='__main__':
 	try:
-		node()
+		main()
 	except rospy.ROSInterruptException:
 		pass
