@@ -6,8 +6,9 @@ import numpy as np
 import cv2
 import sys
 import os
-
 import yaml
+
+
 def opencv_matrix(loader, node):
     mapping = loader.construct_mapping(node, deep=True)
     mat = np.array(mapping["data"])
@@ -48,11 +49,12 @@ def get_Rt(IMAGE_PATH, SERIAL_NUMBER):
 	# cv2.waitKey(0)
 
 	# create 3D and 2D coordinates
-	objectPoints = np.array([[[i,j,0]] for i in range(BOARD_DIM_Y) for j in range(BOARD_DIM_X)],dtype='float32')
+	cooef = 0.0322
+	objectPoints = np.array([[[cooef*i,cooef*j,0]] for i in range(BOARD_DIM_Y) for j in range(BOARD_DIM_X)],dtype='float32')
 	imagePoints = corners#np.array([[[10*i,10*j]] for i in range(BOARD_DIM_Y) for j in range(BOARD_DIM_X)],dtype='float32')
 
 	# read in K and distortion coefficients
-	path = "/home/jeff/catkin_ws/src/iai_kinect2/kinect2_bridge/data/"+SERIAL_NUMBER\
+	path = "/home/tyler/catkin_ws/src/iai_kinect2/kinect2_bridge/data/"+SERIAL_NUMBER\
 			+"/calib_color.yaml"
 	#matrixA = np.array( cv2.cv.Load(path, cv2.cv.CreateMemStorage(), "cameraMatrix") )
 	with open(path,'r') as stream:

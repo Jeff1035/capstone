@@ -37,12 +37,16 @@ def transform_callback(mkarr):
 										m.pose.orientation.z])
 		rotation_matrix = matrix[:3,:3]
 		translation = np.array([m.pose.position.x, m.pose.position.y, m.pose.position.z])
-		t = extcalib[:3, 3] + translation
-		R = extcalib[:3, :3].dot(camera_R)
+		t = extcalib[:3, 3] - translation
+		R = extcalib[:3, :3].dot(rotation_matrix)
 		marker.pose.position.x = t[0]
 		marker.pose.position.y = t[1]
 		marker.pose.position.z = t[2]
-		#TODO: add the correct orientatoins for each pose
+		quant = tf.quaternion_from_matrix(R)
+		marker.pose.orientation.w = quant[0]
+		marker.pose.orientation.x = quant[1]
+		marker.pose.orientation.y = quant[2]
+		marker.pose.orientation.z = quant[3]	
 		ret_array.markers.append(marker)
 
 	pub.publish(ret_array)
@@ -56,6 +60,8 @@ def main():
 	rospy.init_node('apriltag_calib')
 	getExt()
 	april_calib()
+
+#TODO: add extra calibration so that don't have to run the calibration stream
 
 if __name__=='__main__':
 	try:
