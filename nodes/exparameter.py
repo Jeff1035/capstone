@@ -2,13 +2,13 @@
 from geometry_msgs.msg import Transform
 import transformations as transf
 import rospy
+import rospkg
 import numpy as np
 import cv2
 import sys
 import os
+
 import yaml
-
-
 def opencv_matrix(loader, node):
     mapping = loader.construct_mapping(node, deep=True)
     mat = np.array(mapping["data"])
@@ -26,7 +26,7 @@ def get_Rt(IMAGE_PATH, SERIAL_NUMBER):
 		print "target image at", IMAGE_PATH, "not exist"
 		exit()
 	gray = cv2.imread(IMAGE_PATH,0)
-	# cv2.imshow("calibration image in grayscale",gray)
+	# cv2.imshow("calibration image",image)
 	# cv2.waitKey()
 
 	# Find the checkerboard corners and refine it
@@ -44,18 +44,18 @@ def get_Rt(IMAGE_PATH, SERIAL_NUMBER):
 	#     cv2.circle(gray,(pair[0][0],pair[0][1]), 20, (0,0,255), -1)
 	#     cv2.imshow('img', gray)
 	#     cv2.waitKey(0)
-	# cv2.drawChessboardCorners(gray, (8,6), corners, ret)
-	# cv2.imshow('img', gray)
+	# cv2.drawChessboardCorners(image, (8,6), corners, ret)
+	# cv2.imshow('img', image)
 	# cv2.waitKey(0)
 
 	# create 3D and 2D coordinates
-	cooef = 0.0322
-	objectPoints = np.array([[[cooef*i,cooef*j,0]] for i in range(BOARD_DIM_Y) for j in range(BOARD_DIM_X)],dtype='float32')
+	checker_dim = 0.0322
+	objectPoints = np.array([[[i*checker_dim,j*checker_dim,0]] for i in range(BOARD_DIM_Y) for j in range(BOARD_DIM_X)],dtype='float32')
 	imagePoints = corners#np.array([[[10*i,10*j]] for i in range(BOARD_DIM_Y) for j in range(BOARD_DIM_X)],dtype='float32')
 
 	# read in K and distortion coefficients
-	path = "/home/tyler/catkin_ws/src/iai_kinect2/kinect2_bridge/data/"+SERIAL_NUMBER\
-			+"/calib_color.yaml"
+	driver_path = rospkg.RosPack().get_path('kinect2_bridge')
+	path = driver_path + "/data/"+ SERIAL_NUMBER + "/calib_color.yaml"
 	#matrixA = np.array( cv2.cv.Load(path, cv2.cv.CreateMemStorage(), "cameraMatrix") )
 	with open(path,'r') as stream:
 		stream.readline()
@@ -80,7 +80,7 @@ def get_Rt(IMAGE_PATH, SERIAL_NUMBER):
 	print "re-projection error is", error
 
 	# # draw the xyz axis
-	# OXYZ = np.array([[[0,0,0]],[[5,0,0]],[[0,5,0]],[[0,0,5]]],dtype='float32')
+	# OXYZ = np.array([[[0,0,0]],[[5*checker_dim,0,0]],[[0,5*checker_dim,0]],[[0,0,5*checker_dim]]],dtype='float32')
 	# oxyz = cv2.projectPoints(OXYZ,rvec,tvec,cameraMatrix,distCoeffs)[0]
 	# cv2.line(image,(oxyz[0][0][0],oxyz[0][0][1]),(oxyz[1][0][0],oxyz[1][0][1]),(255,0,0),5)
 	# cv2.line(image,(oxyz[0][0][0],oxyz[0][0][1]),(oxyz[2][0][0],oxyz[2][0][1]),(0,255,0),5)
@@ -98,8 +98,11 @@ def get_Rt(IMAGE_PATH, SERIAL_NUMBER):
 	# 	cv2.circle(image,(p_img[0],p_img[1]),3,(255,0,0),-1)
 	# 	cv2.imshow('img',image)
 	# 	cv2.waitKey(0)
-	
-	return cv2.Rodrigues(rvec)[0],tvec
+	R_obj = cv2.Rodrigues(rvec)[0]
+	t_obj = tvec
+	R = np.linalg.inv(R_obj)
+	t = -R.dot(t_obj)
+	return R,t
 
 def tf_from_Rt(R, t):
 	m = Transform()
@@ -123,8 +126,8 @@ def talker(m):
 
 
 if __name__ == '__main__':
-	print 'Number of arguments:', len(sys.argv), 'arguments.'
-	print 'Argument List:', str(sys.argv)
+	# print 'Number of arguments:', len(sys.argv), 'arguments.'
+	# print 'Argument List:', str(sys.argv)
 	if len(sys.argv) is not 3:
 		print 'Input argument error\nArg#1: name of calibration image\nArg#2: Kinect Serial number'
 		exit()

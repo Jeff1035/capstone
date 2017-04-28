@@ -26,8 +26,9 @@ def getExt():
 	print "calibration finished"
 
 def transform_callback(mkarr):
+	# print extcalib
 	ret_array = MarkerArray()
-	print "Detected {0} AprilTags".format(len(mkarr.markers))
+	#print "Detected {0} AprilTags".format(len(mkarr.markers))
 
 	for m in mkarr.markers:
 		marker = Marker()
@@ -37,8 +38,11 @@ def transform_callback(mkarr):
 										m.pose.orientation.z])
 		rotation_matrix = matrix[:3,:3]
 		translation = np.array([m.pose.position.x, m.pose.position.y, m.pose.position.z])
-		t = extcalib[:3, 3] - translation
-		R = extcalib[:3, :3].dot(rotation_matrix)
+		R_cam = extcalib[:3, :3]
+		t_cam = extcalib[:3, 3]
+		R = R_cam.dot(rotation_matrix)
+		t = t_cam+ R_cam.dot(translation)
+
 		marker.pose.position.x = t[0]
 		marker.pose.position.y = t[1]
 		marker.pose.position.z = t[2]
