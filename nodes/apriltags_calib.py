@@ -28,10 +28,9 @@ def getExt():
 def transform_callback(mkarr):
 	# print extcalib
 	ret_array = MarkerArray()
-	#print "Detected {0} AprilTags".format(len(mkarr.markers))
+	print "Detected {0} AprilTags".format(len(mkarr.markers))
 
 	for m in mkarr.markers:
-		marker = Marker()
 		matrix = tf.quaternion_matrix([m.pose.orientation.w,
 										m.pose.orientation.x, 
 										m.pose.orientation.y,
@@ -43,15 +42,15 @@ def transform_callback(mkarr):
 		R = R_cam.dot(rotation_matrix)
 		t = t_cam+ R_cam.dot(translation)
 
-		marker.pose.position.x = t[0]
-		marker.pose.position.y = t[1]
-		marker.pose.position.z = t[2]
+		m.pose.position.x = t[0]
+		m.pose.position.y = t[1]
+		m.pose.position.z = t[2]
 		quant = tf.quaternion_from_matrix(R)
-		marker.pose.orientation.w = quant[0]
-		marker.pose.orientation.x = quant[1]
-		marker.pose.orientation.y = quant[2]
-		marker.pose.orientation.z = quant[3]	
-		ret_array.markers.append(marker)
+		m.pose.orientation.w = quant[0]
+		m.pose.orientation.x = quant[1]
+		m.pose.orientation.y = quant[2]
+		m.pose.orientation.z = quant[3]	
+		ret_array.markers.append(m)
 
 	pub.publish(ret_array)
 

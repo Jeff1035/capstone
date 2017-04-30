@@ -13,9 +13,12 @@ env.SetViewer('qtcoin')
 # table = env.ReadKinBodyXMLFile('objects/table.kinbody.xml')
 # env.Add(table)
 
-
-mug = env.ReadKinBodyXMLFile('data/box1.kinbody.xml')
-env.Add(mug)
+box1 = env.ReadKinBodyXMLFile('data/box1.kinbody.xml')
+mug1 = env.ReadKinBodyXMLFile('data/mug1.kinbody.xml')
+env.Add(box1)
+env.Add(mug1)
+#map each object to a marker id
+obj = {0:box1, 1:mug1}
 
 
 #add in robot
@@ -35,6 +38,7 @@ env.Add(mug)
 
 
 def callback(mkarr):
+	
 	for m in mkarr.markers:
 		print m.pose
 		or_w = m.pose.orientation.w
@@ -46,10 +50,10 @@ def callback(mkarr):
 		matrix[1,3] = m.pose.position.y
 		matrix[2,3] = m.pose.position.z
 		# matrix[0:2, 3] = 0
-		print matrix
 
 		pos = np.array(matrix)
-		mug.SetTransform(pos)
+		print m.id
+		obj[m.id].SetTransform(pos)
 
 def main():
 	# initiate the openrave simulation
